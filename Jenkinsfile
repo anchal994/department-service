@@ -1,52 +1,86 @@
 pipeline {
-    agent any
-    
-    // environment {
-    //     JAVA_HOME = 'C:\\Program Files\\Java\\jdk1.8.0_271' // Update with your JDK path
-    //     MAVEN_HOME = 'C:\\apache-maven-3.6.3' // Update with your Maven path
-    //     PATH = "${env.PATH};${JAVA_HOME}\\bin;${MAVEN_HOME}\\bin"
-    // }
+  agent any
 
-    stages {
-        stage('Checkout') {
-            steps {
-                // Checkout your source code repository
-                checkout scm
-            }
-        }
-
-        stage('Build') {
-            steps {
-                // Build the Spring Boot application using Maven
-                bat "mvn clean package"
-            }
-        }
-
-        // stage('Test') {
-        //     steps {
-        //         // Run tests if required
-        //         bat "mvn test"
-        //     }
-        // }
-
-        // stage('Deploy') {
-        //     steps {
-        //         // Deploy the Spring Boot application (e.g., copy the JAR file)
-        //         bat "xcopy target\\your-application.jar C:\\path\\to\\deployment\\directory"
-        //     }
-        // }
-
-        // stage('Start Application') {
-        //     steps {
-        //         // Start the Spring Boot application
-        //         bat "java -jar C:\\path\\to\\deployment\\directory\\your-application.jar"
-        //     }
-        // }
+  tools {
+    maven "maven"
+  }
+  stages {
+    stage('git') {
+      steps {
+        git branch: 'main', url: 'https://github.com/anchal994/department-service.git'
+      }
+      //               post {
+      //     failure {
+      //         emailext subject: "Build Failed: ${currentBuild.fullDisplayName}",
+      //                  body: "The build failed. Please check the Jenkins console output for more details.",
+      //                  to: "soham.kulkarni@tcognition.com, roshan.farkate@tcognition.com",
+      //                  attachLog: true
+      //     }
+      // }
+    }
+    stage('compile') {
+      steps {
+        bat "mvn compile"
+      }
+      //               post {
+      //     failure {
+      //         emailext subject: "Build Failed: ${currentBuild.fullDisplayName}",
+      //                  body: "The build failed. Please check the Jenkins console output for more details.",
+      //                  to: "soham.kulkarni@tcognition.com, roshan.farkate@tcognition.com",
+      //                  attachLog: true
+      //     }
+      // }
+    }
+    stage('test') {
+      steps {
+        // bat "mvn test"
+        echo "test cases"
+      }
+      //               post {
+      //     failure {
+      //         emailext subject: "Build Failed: ${currentBuild.fullDisplayName}",
+      //                  body: "The build failed. Please check the Jenkins console output for more details.",
+      //                  to: "soham.kulkarni@tcognition.com, roshan.farkate@tcognition.com",
+      //                  attachLog: true
+      //     }
+      // }
     }
 
-    post {
-        always {
-            // Cleanup or perform any other tasks needed
-        }
+    stage('build') {
+      steps {
+        bat "mvn clean install"
+        echo "build successfully"
+         archiveArtifacts artifacts: "**/target/*.jar"
+      }
+
+      //             post {
+      //     failure {
+      //         emailext subject: "Build Failed: ${currentBuild.fullDisplayName}",
+      //                  body: "The build failed. Please check the Jenkins console output for more details.",
+      //                  to: "soham.kulkarni@tcognition.com, roshan.farkate@tcognition.com",
+      //                  attachLog: true
+      //     }
+      // }
     }
+    stage('deploy'){
+    steps{
+        powershell 'Copy-Item -Force "C:\\ProgramData\\Jenkins\\.jenkins\\workspace\\Department Service\\target\\*" "C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps" -Recurse'
+    echo 'code deployed'
+    }
+    //      post {
+    //     failure {
+    //         emailext subject: "Build Failed: ${currentBuild.fullDisplayName}",
+    //                  body: "The build failed. Please check the Jenkins console output for more details.",
+    //                  to: "soham.kulkarni@tcognition.com, roshan.farkate@tcognition.com",
+    //                  attachLog: true
+    //     }
+    //     success {
+    //         emailext subject: "Build Successful: ${currentBuild.fullDisplayName}",
+    //                  body: "The build was successful. You can download the artifacts from ${BUILD_URL}",
+    //                   to: "soham.kulkarni@tcognition.com, roshan.farkate@tcognition.com",
+    //                  attachLog: true
+    //     }
+     }
+
+  }
 }
